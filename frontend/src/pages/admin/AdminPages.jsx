@@ -1,0 +1,34 @@
+import { useEffect, useState } from 'react';
+import { api } from '../../api/client';
+import { ErrorMessage, EmptyState } from '../../components/LoadingError';
+
+export function Users() {
+  const [users, setUsers] = useState([]); const [error, setError] = useState('');
+  async function load() { const { data } = await api.get('/admin/users'); setUsers(data); }
+  useEffect(() => { load().catch((err) => setError(err.message)); }, []);
+  async function toggle(user) { try { await api.patch(`/admin/users/${user.id}/enabled`, { enabled: !Boolean(user.enabled) }); load(); } catch (err) { setError(err.message); } }
+  return <section><h1 className="mb-4 text-3xl font-black">User Management</h1><ErrorMessage error={error} /><div className="overflow-hidden rounded-2xl bg-white shadow-sm"><table className="w-full text-sm"><thead className="bg-slate-100"><tr><th className="table-cell">Name</th><th className="table-cell">Email</th><th className="table-cell">Role</th><th className="table-cell">Status</th><th className="table-cell">Action</th></tr></thead><tbody>{users.map((user) => <tr key={user.id}><td className="table-cell font-bold">{user.full_name}</td><td className="table-cell">{user.email}</td><td className="table-cell capitalize">{user.role}</td><td className="table-cell">{user.enabled ? 'Enabled' : 'Disabled'}</td><td className="table-cell"><button className="rounded-xl border px-3 py-1" onClick={() => toggle(user)}>{user.enabled ? 'Disable' : 'Enable'}</button></td></tr>)}</tbody></table></div></section>;
+}
+
+export function Vendors() {
+  const [vendors, setVendors] = useState([]); const [form, setForm] = useState({ full_name: '', email: '', password: '', vendor_name: '', description: '' }); const [error, setError] = useState('');
+  async function load() { const { data } = await api.get('/vendors'); setVendors(data); }
+  useEffect(() => { load().catch((err) => setError(err.message)); }, []);
+  async function submit(e) { e.preventDefault(); try { await api.post('/vendors', form); setForm({ full_name: '', email: '', password: '', vendor_name: '', description: '' }); load(); } catch (err) { setError(err.message); } }
+  return <section className="grid gap-6 lg:grid-cols-3"><form onSubmit={submit} className="card h-fit"><h1 className="text-2xl font-black">Create vendor</h1><ErrorMessage error={error} />{Object.keys(form).map((key) => <input key={key} className="input mt-3" required={key !== 'description'} type={key === 'password' ? 'password' : 'text'} placeholder={key.replace('_', ' ')} value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} />)}<button className="btn mt-4 w-full">Add vendor</button></form><div className="lg:col-span-2 grid gap-3">{vendors.map((vendor) => <article className="card" key={vendor.id}><p className="font-black">{vendor.vendor_name}</p><p className="text-slate-600">{vendor.description}</p><p className="mt-2 text-sm text-slate-500">Manager: {vendor.manager_name} · {vendor.email} · {Number(vendor.average_rating).toFixed(1)}★</p></article>)}</div></section>;
+}
+
+export function Reports() {
+  const [report, setReport] = useState(null); const [error, setError] = useState('');
+  useEffect(() => { api.get('/admin/reports').then((r) => setReport(r.data)).catch((err) => setError(err.message)); }, []);
+  if (!report) return <><ErrorMessage error={error} /><EmptyState>Loading reports...</EmptyState></>;
+  return <section><h1 className="mb-4 text-3xl font-black">System Reports</h1><div className="grid gap-4 md:grid-cols-4"><div className="card"><p>Total orders</p><strong className="text-3xl">{report.summary.total_orders}</strong></div><div className="card"><p>Revenue</p><strong className="text-3xl">${Number(report.summary.total_revenue).toFixed(2)}</strong></div><div className="card"><p>Completed</p><strong className="text-3xl">{report.summary.completed_orders}</strong></div><div className="card"><p>Cancelled</p><strong className="text-3xl">{report.summary.cancelled_orders}</strong></div></div><div className="mt-6 grid gap-4 lg:grid-cols-2"><div className="card"><h2 className="font-black">Sales by vendor</h2>{report.salesByVendor.map((v) => <p className="mt-2 flex justify-between" key={v.vendor_name}><span>{v.vendor_name}</span><strong>${Number(v.revenue).toFixed(2)}</strong></p>)}</div><div className="card"><h2 className="font-black">Popular items</h2>{report.popularItems.map((i) => <p className="mt-2 flex justify-between" key={i.item_name}><span>{i.item_name}</span><strong>{i.quantity_sold} sold</strong></p>)}</div></div></section>;
+}
+
+export function Settings() {
+  const [settings, setSettings] = useState({ pickupWindowMinutes: 15, currency: 'USD', paymentsEnabled: true, reviewsEnabled: true });
+  const [message, setMessage] = useState(''); const [error, setError] = useState('');
+  useEffect(() => { api.get('/admin/settings').then((r) => setSettings({ pickupWindowMinutes: Number(r.data.pickupWindowMinutes || 15), currency: r.data.currency || 'USD', paymentsEnabled: r.data.paymentsEnabled === 'true' || r.data.paymentsEnabled === true, reviewsEnabled: r.data.reviewsEnabled === 'true' || r.data.reviewsEnabled === true })).catch((err) => setError(err.message)); }, []);
+  async function submit(e) { e.preventDefault(); setError(''); setMessage(''); try { const { data } = await api.put('/admin/settings', settings); setSettings({ pickupWindowMinutes: Number(data.pickupWindowMinutes), currency: data.currency, paymentsEnabled: data.paymentsEnabled === 'true', reviewsEnabled: data.reviewsEnabled === 'true' }); setMessage('Settings saved.'); } catch (err) { setError(err.message); } }
+  return <form onSubmit={submit} className="card max-w-2xl"><h1 className="text-3xl font-black">System Settings</h1><ErrorMessage error={error} />{message && <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-emerald-700">{message}</div>}<label className="label mt-4 block">Pickup window minutes<input className="input mt-1" type="number" min="1" max="240" value={settings.pickupWindowMinutes} onChange={(e) => setSettings({ ...settings, pickupWindowMinutes: Number(e.target.value) })} /></label><label className="label mt-4 block">Currency<input className="input mt-1 uppercase" maxLength="3" value={settings.currency} onChange={(e) => setSettings({ ...settings, currency: e.target.value.toUpperCase() })} /></label><label className="mt-4 flex items-center gap-2 font-semibold"><input type="checkbox" checked={settings.paymentsEnabled} onChange={(e) => setSettings({ ...settings, paymentsEnabled: e.target.checked })} /> Payments enabled</label><label className="mt-3 flex items-center gap-2 font-semibold"><input type="checkbox" checked={settings.reviewsEnabled} onChange={(e) => setSettings({ ...settings, reviewsEnabled: e.target.checked })} /> Reviews enabled</label><button className="btn mt-5">Save settings</button></form>;
+}

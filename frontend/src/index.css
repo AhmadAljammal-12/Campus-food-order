@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { @apply bg-slate-50 text-slate-900 antialiased; }
+.card { @apply rounded-2xl border border-slate-100 bg-white p-6 shadow-sm; }
+.btn { @apply rounded-xl bg-emerald-600 px-4 py-2 font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300; }
+.input { @apply w-full rounded-xl border border-slate-200 px-4 py-2 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100; }
+.label { @apply text-sm font-semibold text-slate-700; }
+.table-cell { @apply border-b border-slate-100 px-3 py-3 text-left; }

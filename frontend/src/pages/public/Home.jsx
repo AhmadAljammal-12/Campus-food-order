@@ -1,0 +1,5 @@
+import { Link } from 'react-router-dom';
+
+export default function Home() {
+  return <section className="grid items-center gap-8 py-10 lg:grid-cols-2"><div><p className="font-bold text-emerald-600">Campus food, managed end-to-end</p><h1 className="mt-3 text-5xl font-black tracking-tight md:text-6xl">Order ahead, skip the line, and keep campus dining moving.</h1><p className="mt-5 text-lg text-slate-600">Students browse menus and track queue numbers while vendors, admins, and staff manage orders, inventory, analytics, and pickup operations.</p><div className="mt-8 flex gap-3"><Link className="btn" to="/register">Start ordering</Link><Link className="rounded-xl border px-4 py-2 font-semibold" to="/login">Sign in</Link></div></div><div className="card grid gap-4"><h2 className="text-2xl font-black">Included workflows</h2>{['Student ordering and reviews', 'Vendor menu, inventory, queue, and sales analytics', 'Admin users, vendors, reports, and settings', 'Staff queue calling and pickup confirmation'].map((item) => <div className="rounded-xl bg-emerald-50 p-4 font-semibold" key={item}>{item}</div>)}</div></section>;
+}
